@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Professional Certification</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --py-blue: #3776ab;
+            --py-yellow: #ffd43b;
+            --bg-dark: #0f172a;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(55, 118, 171, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(255, 212, 59, 0.1) 0px, transparent 50%);
+            min-height: 100vh;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+        .code-font { font-family: 'Fira Code', monospace; }
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+        }
+        .option-card {
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .option-card:hover {
+            background: rgba(55, 118, 171, 0.2);
+            border-color: var(--py-blue);
+            transform: translateY(-2px);
+        }
+        .progress-fill { transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        @keyframes pulse-audio {
+            0% { transform: scaleY(0.5); }
+            50% { transform: scaleY(1.2); }
+            100% { transform: scaleY(0.5); }
+        }
+        .audio-bar {
+            width: 3px; height: 15px; background: var(--py-yellow);
+            animation: pulse-audio 0.6s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-container" class="w-full max-w-4xl p-6 relative">
+        
+        <!-- Панель управления -->
+        <div class="absolute top-4 right-4 flex gap-3 z-50">
+            <button id="toggle-music" onclick="toggleMusic()" class="glass p-3 hover:bg-white/10 transition group" title="Фоновая музыка">
+                <div class="flex items-end gap-0.5 h-5">
+                    <div class="audio-bar" style="animation-delay: 0s;"></div>
+                    <div class="audio-bar" style="animation-delay: 0.1s;"></div>
+                    <div class="audio-bar" style="animation-delay: 0.2s;"></div>
+                </div>
+            </button>
+            <button id="toggle-voice" onclick="toggleVoice()" class="glass p-3 hover:bg-white/10 transition" title="Озвучка вопросов">
+                <svg id="voice-icon" class="w-5 h-5 text-py-yellow" fill="currentColor" viewBox="0 0 20 20"><path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.693-3.707a1 1 0 011.104-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.983 5.983 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.984 3.984 0 00-1.172-2.828 1 1 0 010-1.415z"></path></svg>
+            </button>
+        </div>
+
+        <!-- Экран регистрации -->
+        <div id="screen-start" class="glass p-10 text-center">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg" class="w-20 mx-auto mb-6 opacity-80" alt="Python Logo">
+            <h1 class="text-4xl font-bold mb-4">Python Pro Quiz</h1>
+            <p class="text-slate-400 mb-8">Масштабная проверка знаний. Озвучка включена по умолчанию.</p>
+            
+            <div class="max-w-sm mx-auto space-y-4">
+                <div class="text-left">
+                    <label class="text-xs uppercase tracking-widest text-slate-500 font-bold ml-2">Ваши Имя и Фамилия</label>
+                    <input type="text" id="full-name" placeholder="Иван Иванов" class="w-full bg-slate-900/50 border border-white/10 rounded-xl p-4 mt-1 outline-none focus:border-blue-500 transition text-white">
+                </div>
+                <button onclick="startApplication()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-900/40 transition-all active:scale-95">
+                    Начать тест
+                </button>
+            </div>
+        </div>
+
+        <!-- Экран теста -->
+        <div id="screen-quiz" class="hidden glass p-8 relative">
+            <div class="flex justify-between items-end mb-6">
+                <div>
+                    <h2 class="text-blue-400 font-bold text-sm tracking-widest uppercase mb-1">Python Developer Core</h2>
+                    <div class="text-2xl font-bold flex items-center gap-2">
+                        Вопрос <span id="q-idx">1</span> <span class="text-slate-600 text-lg">/ 15</span>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div id="timer-label" class="text-3xl font-bold text-yellow-400 code-font">20</div>
+                </div>
+            </div>
+            
+            <div class="w-full h-1.5 bg-slate-800 rounded-full mb-8 overflow-hidden">
+                <div id="progress-bar" class="progress-fill h-full bg-gradient-to-r from-blue-500 to-yellow-400" style="width: 0%"></div>
+            </div>
+
+            <div id="question-box" class="mb-10">
+                <p id="question-text" class="text-xl md:text-2xl font-medium leading-relaxed mb-6"></p>
+                <div id="options-list" class="grid grid-cols-1 gap-3"></div>
+            </div>
+        </div>
+
+        <!-- Финальный экран -->
+        <div id="screen-final" class="hidden glass p-10 text-center">
+            <div id="result-icon" class="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6"></div>
+            <h2 class="text-3xl font-bold mb-2">Тест завершен!</h2>
+            <p id="final-stats" class="text-slate-400 mb-2"></p>
+            <p id="final-comment" class="text-2xl font-bold text-white mb-10 italic px-4"></p>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md mx-auto">
+                <button id="cert-btn" onclick="generateCertificate()" class="bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-bold py-4 rounded-xl transition">
+                    Скачать Сертификат
+                </button>
+                <button onclick="location.reload()" class="bg-slate-700 hover:bg-slate-600 font-bold py-4 rounded-xl transition">
+                    На главную
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Скрытый сертификат -->
+    <div class="fixed -left-[3000px]">
+        <div id="cert-template" style="width: 1000px; height: 700px; background: white; color: #0f172a; padding: 60px; position: relative; font-family: 'Inter', sans-serif;">
+            <div style="position: absolute; top: 20px; left: 20px; right: 20px; bottom: 20px; border: 8px solid #3776ab;"></div>
+            <div style="position: absolute; top: 40px; left: 40px; right: 40px; bottom: 40px; border: 2px solid #ffd43b;"></div>
+            
+            <div style="text-align: center; position: relative; z-index: 10;">
+                <h1 style="font-size: 60px; font-weight: 800; color: #1e293b; margin: 0;">CERTIFICATE</h1>
+                <p style="font-size: 18px; letter-spacing: 8px; color: #64748b; margin-top: 5px; margin-bottom: 40px;">PYTHON CORE MASTERY</p>
+                
+                <p style="font-style: italic; color: #94a3b8; font-size: 20px;">Настоящим подтверждается, что</p>
+                <h2 id="pdf-user-name" style="font-size: 44px; color: #3776ab; border-bottom: 2px solid #e2e8f0; display: inline-block; padding: 0 40px 10px 40px; margin-bottom: 30px;">Имя Фамилия</h2>
+                
+                <p style="font-size: 22px; color: #475569; max-width: 800px; margin: 0 auto 30px auto; line-height: 1.4;">
+                    прошел тестирование по языку Python с результатом <strong id="pdf-score">0/15</strong>.
+                </p>
+                
+                <div id="pdf-comment-box" style="background: #f8fafc; padding: 20px; border-radius: 15px; display: inline-block; margin-bottom: 40px;">
+                    <p id="pdf-comment" style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0;"></p>
+                </div>
+                
+                <div style="display: flex; justify-content: space-around; margin-top: 40px;">
+                    <div style="text-align: center;">
+                        <p id="pdf-date" style="font-weight: 700; margin-bottom: 5px;">01.01.2024</p>
+                        <p style="font-size: 10px; color: #94a3b8; text-transform: uppercase;">Дата выдачи</p>
+                    </div>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg" style="width: 50px;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const QUESTIONS = [
+            { q: "Какой метод используется для добавления элемента в конец списка?", a: ["add()", "push()", "append()", "extend()"], c: 2 },
+            { q: "Как правильно объявить функцию в Python?", a: ["func myFunc():", "def myFunc():", "function myFunc()", "define myFunc():"], c: 1 },
+            { q: "Что выведет print(type([]))?", a: ["<class 'list'>", "<class 'tuple'>", "<class 'dict'>", "<class 'array'>"], c: 0 },
+            { q: "Какое ключевое слово используется для обработки исключений?", a: ["catch", "error", "try", "handle"], c: 2 },
+            { q: "Какой тип данных является неизменяемым (immutable)?", a: ["list", "set", "dict", "tuple"], c: 3 },
+            { q: "Что делает оператор //?", a: ["Деление с остатком", "Целочисленное деление", "Возведение в степень", "Логическое И"], c: 1 },
+            { q: "Как получить количество элементов в списке x?", a: ["x.size()", "count(x)", "len(x)", "x.length"], c: 2 },
+            { q: "Какой символ используется для комментариев?", a: ["//", "/*", "#", "--"], c: 2 },
+            { q: "Что такое self в методах класса?", a: ["Глобальная переменная", "Ссылка на текущий экземпляр", "Статическое поле", "Системный вызов"], c: 1 },
+            { q: "Как импортировать библиотеку math?", a: ["using math", "include math", "import math", "require math"], c: 2 },
+            { q: "Какой метод превращает строку в список слов?", a: ["split()", "join()", "slice()", "divide()"], c: 0 },
+            { q: "Что вернет 2 ** 3?", a: ["6", "8", "9", "5"], c: 1 },
+            { q: "Как создать виртуальное окружение?", a: ["python -v venv", "pip create venv", "python -m venv", "venv new"], c: 2 },
+            { q: "Какой декоратор делает метод класса статическим?", a: ["@static", "@classmethod", "@method_static", "@staticmethod"], c: 3 },
+            { q: "Что такое PEP 8?", a: ["Компилятор", "Руководство по стилю кода", "Библиотека для GUI", "Веб-фреймворк"], c: 1 }
+        ];
+
+        let state = {
+            current: 0,
+            score: 0,
+            userName: "",
+            timer: 20,
+            timerId: null,
+            voiceEnabled: true,
+            musicEnabled: false,
+            audioCtx: null,
+            oscillator: null
+        };
+
+        function toggleVoice() {
+            state.voiceEnabled = !state.voiceEnabled;
+            document.getElementById('voice-icon').style.color = state.voiceEnabled ? '#ffd43b' : '#64748b';
+            if (!state.voiceEnabled) speechSynthesis.cancel();
+        }
+
+        function speak(text) {
+            if (!state.voiceEnabled) return;
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'ru-RU';
+            speechSynthesis.speak(msg);
+        }
+
+        function toggleMusic() {
+            state.musicEnabled = !state.musicEnabled;
+            if (state.musicEnabled) startAmbient(); else if (state.oscillator) state.oscillator.stop();
+        }
+
+        function startAmbient() {
+            if (!state.audioCtx) state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const ctx = state.audioCtx;
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(110, ctx.currentTime);
+            g.gain.setValueAtTime(0.02, ctx.currentTime);
+            osc.connect(g); g.connect(ctx.destination);
+            osc.start();
+            state.oscillator = osc;
+        }
+
+        function startApplication() {
+            const name = document.getElementById('full-name').value.trim();
+            if (!name) return alert("Введите имя!");
+            state.userName = name;
+            document.getElementById('screen-start').classList.add('hidden');
+            document.getElementById('screen-quiz').classList.remove('hidden');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            if (state.current >= QUESTIONS.length) return endQuiz();
+            const q = QUESTIONS[state.current];
+            document.getElementById('q-idx').innerText = state.current + 1;
+            document.getElementById('question-text').innerText = q.q;
+            document.getElementById('progress-bar').style.width = `${(state.current / QUESTIONS.length) * 100}%`;
+            
+            const list = document.getElementById('options-list');
+            list.innerHTML = '';
+            q.a.forEach((opt, i) => {
+                const b = document.createElement('button');
+                b.className = "option-card w-full text-left p-4 rounded-xl hover:bg-blue-500/10 transition";
+                b.innerHTML = `<span class="text-blue-500 font-bold mr-3">${i+1}.</span> ${opt}`;
+                b.onclick = () => select(i);
+                list.appendChild(b);
+            });
+            speak(q.q);
+            resetTimer();
+        }
+
+        function resetTimer() {
+            clearInterval(state.timerId);
+            state.timer = 20;
+            updateUI();
+            state.timerId = setInterval(() => {
+                state.timer--;
+                updateUI();
+                if (state.timer <= 0) select(-1);
+            }, 1000);
+        }
+
+        function updateUI() {
+            const t = document.getElementById('timer-label');
+            t.innerText = state.timer;
+            t.className = `text-3xl font-bold code-font ${state.timer <= 5 ? 'text-red-500 animate-pulse' : 'text-yellow-400'}`;
+        }
+
+        function select(idx) {
+            clearInterval(state.timerId);
+            if (idx === QUESTIONS[state.current].c) state.score++;
+            state.current++;
+            renderQuestion();
+        }
+
+        function endQuiz() {
+            document.getElementById('screen-quiz').classList.add('hidden');
+            document.getElementById('screen-final').classList.remove('hidden');
+            
+            let comment = "";
+            let colorClass = "";
+            let iconHtml = "";
+
+            if (state.score <= 5) {
+                comment = "боже человек надо подтянуть знания";
+                colorClass = "text-red-400";
+                iconHtml = '<div class="text-6xl">📖</div>';
+            } else if (state.score <= 10) {
+                comment = "ты оказывается что-то знаешь 🫪";
+                colorClass = "text-blue-400";
+                iconHtml = '<div class="text-6xl">💡</div>';
+            } else {
+                comment = "супер крутой боец python🙌🏻";
+                colorClass = "text-yellow-400";
+                iconHtml = '<div class="text-6xl">👑</div>';
+            }
+
+            document.getElementById('result-icon').innerHTML = iconHtml;
+            document.getElementById('final-stats').innerText = `Результат: ${state.score} из 15`;
+            document.getElementById('final-comment').innerText = comment;
+            document.getElementById('final-comment').className = `text-2xl font-bold mb-10 italic px-4 ${colorClass}`;
+            
+            // Если слишком плохой результат, блокируем сертификат (опционально)
+            if (state.score < 5) {
+                document.getElementById('cert-btn').innerText = "Мало баллов для сертификата";
+                document.getElementById('cert-btn').disabled = true;
+                document.getElementById('cert-btn').classList.add('opacity-50', 'cursor-not-allowed');
+            }
+
+            speak(`Тест окончен. Твой результат ${state.score}. ${comment}`);
+        }
+
+        async function generateCertificate() {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerText = "Генерация...";
+
+            document.getElementById('pdf-user-name').innerText = state.userName;
+            document.getElementById('pdf-score').innerText = `${state.score} / 15`;
+            document.getElementById('pdf-date').innerText = new Date().toLocaleDateString('ru-RU');
+            document.getElementById('pdf-comment').innerText = document.getElementById('final-comment').innerText;
+
+            const cert = document.getElementById('cert-template');
+            try {
+                const canvas = await html2canvas(cert, { scale: 2 });
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('l', 'mm', 'a4');
+                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 297, 210);
+                pdf.save(`Python_Cert_${state.userName}.pdf`);
+                btn.innerText = "Скачано!";
+            } catch (e) {
+                btn.innerText = "Ошибка";
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
